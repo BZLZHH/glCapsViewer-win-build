@@ -43,7 +43,7 @@ jobs:
         powershell Compress-Archive -Path install\* -DestinationPath glCapsViewer-win64.zip
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: glCapsViewer-win64
         path: build\glCapsViewer-win64.zip
