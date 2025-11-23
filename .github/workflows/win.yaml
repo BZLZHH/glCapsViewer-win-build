@@ -1,0 +1,50 @@
+name: Build glCapsViewer Windows 64-bit
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    env:
+      VCPKG_ROOT: ${{ runner.temp }}\vcpkg
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v3
+
+    - name: Setup vcpkg
+      run: |
+        git clone https://github.com/microsoft/vcpkg.git "%VCPKG_ROOT%"
+        %VCPKG_ROOT%\bootstrap-vcpkg.bat
+
+    - name: Install Qt5
+      run: |
+        %VCPKG_ROOT%\vcpkg install qt5:x64-windows
+
+    - name: Configure CMake
+      run: |
+        mkdir build && cd build
+        cmake .. ^
+          -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake ^
+          -DCMAKE_BUILD_TYPE=Release ^
+          -DCMAKE_INSTALL_PREFIX=install
+
+    - name: Build
+      run: |
+        cd build
+        cmake --build . --config Release --target INSTALL
+
+    - name: Package
+      run: |
+        cd build
+        powershell Compress-Archive -Path install\* -DestinationPath glCapsViewer-win64.zip
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: glCapsViewer-win64
+        path: build\glCapsViewer-win64.zip
